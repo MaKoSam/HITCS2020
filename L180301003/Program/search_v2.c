@@ -36,12 +36,10 @@ int precalculate(double data[][DIM], int data_len, double query[][DIM], int quer
     return 1;
 }
 
-double cosine_likely(double x[], double y[], int dim) {
-	double mx = 0, my = 0, s = 0;
+double cosine_likely(double x[], double y[], int dim, int indexX, int indexY) {
+	double mx = dataSq[indexX], my = querySq[indexY], s = 0;
 	int i;
 	for(i = 0; i < dim; i++) {
-		mx += (x[i] * x[i]);
-		my += (y[i] * y[i]);
 		s  += x[i] * y[i];
 	}
     
@@ -64,7 +62,7 @@ int search(double data[][DIM], int data_len, double query[][DIM], int query_len)
     for(i = 0; i <= data_len - query_len; i++) {
         score = 0;
         for(j = 0; j < query_len; j++)
-            score += cosine_likely(data[i + j], query[j], DIM);
+            score += cosine_likely(data[i + j], query[j], DIM, i+j, j);
         score /= query_len;
         if(score > fMaxScore) {
             //printf("i=%d score=%lf fMaxScore=%lf\n",i, score,fMaxScore);

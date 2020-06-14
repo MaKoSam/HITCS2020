@@ -5,8 +5,6 @@
 #define DIM  32
 #define N  1000000
 
-struct	timeval	start, end;
-
 double cosine_likely(double x[], double y[], int dim)
 {
 	double mx=0,my=0,s=0;
@@ -50,6 +48,7 @@ int search(double data[][DIM], int data_len, double query[][DIM], int query_len)
 typedef double(*ArrayPtrType)[DIM]; 
 int main()
 {
+    struct timeval start, end;
 	int data_len=0, query_len=0;
 	double (*data)[DIM],(*query)[DIM],*p;
 	int i,iPos=-1;
@@ -107,7 +106,7 @@ int main()
     }
     gettimeofday(&end, NULL);
     fScanTime = end.tv_sec -start.tv_sec + (end.tv_usec - start.tv_usec)*0.000001;
-    printf("\n\nspeed test finish, use time:%lfs\n\n",fScanTime);
+    printf("\n\nspeed test finish, use time:%lfs\n\n", fScanTime);
 	free(data);
 	free(query);
 	return 0;
