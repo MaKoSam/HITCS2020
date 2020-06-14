@@ -2,83 +2,57 @@
 #include <math.h>
 #include <sys/time.h>
 
-#define DIM  32
 #define N  1000000
 
 struct timeval start, end;
 
-double dataSq[5];
-double querySq[5];
+double dataSq[6];
+double querySq[6];
 
-void precalculate(double data[][DIM], int data_len, double query[][DIM], int query_len, int dim) {
-    
-    int i;
-    int j;
-    double summ;
-    for(i = 0; i < data_len; i++) {
-        summ = 0;
-        for(j = 0; j < dim; j++) {
-            summ += data[i][j] * data[i][j];
-        }
-        dataSq[i] = summ;
-    }
-    
-    for(i = 0; i < query_len; i++) {
-        summ = 0;
-        for(j = 0; j < dim; j++) {
-            summ += query[i][j] * query[i][j];
-        }
-        querySq[i] = summ;
-    }
-    
-    return;
-}
-
-double cosine_likely(double x[], double y[], int dim, double xy) {
-	double s = 0;
-	int i;
-	for(i = 0; i < dim; i++) {
-		s  += x[i] * y[i];
-	}
-	return s / sqrt(xy);
-}
-
-//MARK: Search: return the position of the maximum score if the score > 0, orelse return -1;
-int search(double data[][DIM], int data_len, double query[][DIM], int query_len) {
-    if(query_len > data_len) {
-        return -1;
-    }
-    
-    //MARK: - Precalculate()
+//MARK: - Precalculate()
+void precalculate(int DIM, double data[][DIM], int data_len, double query[][DIM], int query_len) {
     int i, j;
-    double score, dataSum;
-    
+    double dataSum, querySum;
     for(i = 0; i < data_len; i++) {
         if(i < query_len) {
             dataSum = 0;
-            score = 0;
+            querySum = 0;
             
-            for(j = 0; j < dim; j++) {
+            for(j = 0; j < DIM; j++) {
                 dataSum += data[i][j] * data[i][j];
-                score += query[i][j] * query[i][j];
+                querySum += query[i][j] * query[i][j];
             }
             dataSq[i] = dataSum;
-            querySq[i] = score;
+            querySq[i] = querySum;
             
         } else {
             dataSum = 0;
             
-            for(j = 0; j < dim; j++) {
+            for(j = 0; j < DIM; j++) {
                 dataSum += data[i][j] * data[i][j];
             }
             dataSq[i] = dataSum;
         }
     }
-    
-    //MARK: - Search()
+    return;
+}
+
+double cosine_likely(double* x, double* y, int dim, double xy) {
+    double s = 0;
+    int i;
+    for(i = 0; i < dim; i++) {
+        s  += x[i] * y[i];
+    }
+    return s / sqrt(xy);
+}
+
+//MARK: - Search()
+//      - Return the position of the maximum score if the score > 0, orelse return -1;
+int search(int DIM, double data[][DIM], int data_len, double query[][DIM], int query_len) {
+    int i, j;
+    double score;
     double fMaxScore = 0;
     int iMaxPos = -1;
-    
     
     for(i = 0; i <= data_len - query_len; i++) {
         score = 0;
@@ -88,7 +62,7 @@ int search(double data[][DIM], int data_len, double query[][DIM], int query_len)
             }
         }
         
-        score /= query_lenu;
+        score /= query_len;
         if(score > fMaxScore) {
             //printf("i=%d score=%lf fMaxScore=%lf\n",i, score,fMaxScore);
             fMaxScore = score;
@@ -96,79 +70,88 @@ int search(double data[][DIM], int data_len, double query[][DIM], int query_len)
         }
     }
 
-	return iMaxPos;
+    return iMaxPos;
 }
 
-typedef double(*ArrayPtrType)[DIM];
+//typedef double(*ArrayPtrType)[32];
 
 int main() {
-	int data_len = 0, query_len = 0;
-	double (*data)[DIM], (*query)[DIM], *p;
-	int i, iPos = -1;
-    bzero(&end, sizeof(end)); 
-    bzero(&start, sizeof(start));  
-	
-	//--------- read data ------------------------  
-	while(data_len < 1) {
-		printf("data len: ");
-		scanf("%d", &data_len);
-	}
-	
-	data = (ArrayPtrType)malloc(data_len * DIM * sizeof(double));
-	p=(double*)data;
-	printf("Please input %d %1d-dimension data:\n", data_len, DIM) ;
-	for(i = 0; i < data_len * DIM; i++)
-	   scanf("%lf" ,p+i);
+    int DIM;
+    printf("Input Data Size:");
+    scanf("%d", &DIM);
+    
+    int data_len = 0, query_len = 0;
+    double (*data)[DIM], (*query)[DIM], *p;
+    int i, iPos = -1;
+    bzero(&end, sizeof(end));
+    bzero(&start, sizeof(start));
+    
+    //--------- read data ------------------------
+    while(data_len < 1) {
+        printf("data len: ");
+        scanf("%d", &data_len);
+    }
+    
+    data = malloc(data_len * DIM * sizeof(double));
+    p=(double*)data;
+    printf("Please input %d %1d-dimension data:\n", data_len, DIM) ;
+    for(i = 0; i < data_len * DIM; i++)
+       scanf("%lf" ,p+i);
 
     printf("input data is:\n");
-	for(i = 0; i < data_len * DIM; i++)
-	   printf("%lf\t", p[i]);
-	printf("\n");	 
-	   
-	//--------- read query ------------------------  
-	while(query_len<1) {
-		printf("query len: ");
-		scanf("%d", &query_len);
-	}	
-	query = (ArrayPtrType)malloc(query_len * DIM * sizeof(double));
-	p = (double*)query;
-	printf("Please input %d %1d-dimension vectors:\n", query_len, DIM) ;
-	for(i = 0; i < query_len * DIM; i++)
-	   scanf("%lf", p + i);
-	printf("input query is:\n");
-	for(i = 0; i < query_len * DIM; i++)
-	   printf("%lf\t", p[i]);
-	printf("\n");
-	
-    //--------- search query in data ------------------------  	  
-	printf("\nbegin search...\n");   
-	if (precalculate(data, data_len, query, query_len, DIM) == 1) {
-        iPos = search(data, data_len, query, query_len);
-        if( iPos > -1)
-            printf("Find query in data at pos: %d\n",iPos);
-        else
-            printf("Do not find query in data!\n");
-    } else
+    for(i = 0; i < data_len * DIM; i++)
+       printf("%lf\t", p[i]);
+    printf("\n");
+       
+    //--------- read query ------------------------
+    while(query_len<1) {
+        printf("query len: ");
+        scanf("%d", &query_len);
+    }
+    query = malloc(query_len * DIM * sizeof(double));
+    p = (double*)query;
+    printf("Please input %d %1d-dimension vectors:\n", query_len, DIM) ;
+    for(i = 0; i < query_len * DIM; i++)
+       scanf("%lf", p + i);
+    printf("input query is:\n");
+    for(i = 0; i < query_len * DIM; i++)
+       printf("%lf\t", p[i]);
+    printf("\n");
+    
+    //--------- search query in data ------------------------
+    printf("\nbegin search...\n");
+    
+    if(query_len > data_len) {
         printf("Do not find query in data!\n");
-	
+        return 0;
+    }
+    
+    precalculate(DIM, data, data_len, query, query_len);
+    
+    iPos = search(DIM, data, data_len, query, query_len);
+    if( iPos > -1)
+        printf("Find query in data at pos: %d\n",iPos);
+    else
+        printf("Do not find query in data!\n");
+    
     //MARK: Code for  speed test of search function
-    dobule fScanTime;
+    double fScanTime;
     gettimeofday(&start, NULL);
     for(i = 1; i < N; i++) {
-       iPos += search(data, data_len, query, query_len);
+       iPos += search(DIM, data, data_len, query, query_len);
     }
     gettimeofday(&end, NULL);
     fScanTime = end.tv_sec - start.tv_sec + (end.tv_usec - start.tv_usec) * 0.000001;
-    printf("\n\nspeed test finish, use time:%lfs\n\n", fSearchTime);
+    printf("\n\nspeed test finish, use time:%lfs\n\n", fScanTime);
     
-	free(data);
-	free(query);
-	return 0;
+    free(data);
+    free(query);
+    return 0;
 }
 
 /*compile command in linux:
 (1)create asm program .s
 gcc search.c -S -lm -Og
 (2)create executable prog
-gcc search.c -o search -lm  -Og  
+gcc search.c -o search -lm  -Og
 */

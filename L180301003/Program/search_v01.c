@@ -97,14 +97,14 @@ int main() {
 		printf("Do not find query in data!\n");
 	
     //MARK: Code for  speed test of search function
-    dobule fScanTime;
+    double fScanTime;
     gettimeofday(&start, NULL);
     for(i = 1; i < N; i++) {
        iPos += search(data, data_len, query, query_len);
     }
     gettimeofday(&end, NULL);
     fScanTime = end.tv_sec - start.tv_sec + (end.tv_usec - start.tv_usec) * 0.000001;
-    printf("\n\nspeed test finish, use time:%lfs\n\n", fSearchTime);
+    printf("\n\nspeed test finish, use time:%lfs\n\n", fScanTime);
     
 	free(data);
 	free(query);
