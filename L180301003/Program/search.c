@@ -10,7 +10,9 @@ struct timeval start, end;
 double dataSq[5];
 double querySq[5];
 
-void precalculate(double data[][DIM], int data_len, double query[][DIM], int query_len, int dim) {
+int precalculate(double data[][DIM], int data_len, double query[][DIM], int query_len, int dim) {
+    if(query_len > data_len)
+    return 0;
     
     int i;
     int j;
